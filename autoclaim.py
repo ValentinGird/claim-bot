@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+from dotenv import load_dotenv 
 load_dotenv()
 
 import os
@@ -110,7 +110,9 @@ def main():
                 print(f"[ERROR] Unexpected response: {resp}")
         except Exception as e:
             print(f"[ERROR] on claim ID {m['uniq_id']}: {e}")
-        time.sleep(3)
+
+        # Pause de 30 secondes entre chaque mine
+        time.sleep(30)
 
     print_totals_table(totals)
 
