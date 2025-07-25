@@ -43,13 +43,21 @@ def fetch_and_get_issue(txid):
         console.log(f"[red]HTTP error:[/] {resp.status_code}")
         return 0.0, None
 
-    for act in resp.json().get("actions", []):
-        if act["act"]["account"] == "eosio.token" and act["act"]["name"] == "issue":
+    try:
+        actions = resp.json().get("actions", [])
+    except Exception as e:
+        console.print(f"[red]JSON decode error on fetch_and_get_issue:[/] {e}")
+        return 0.0, None
+
+    for act in actions:
+        if act.get("act", {}).get("account") == "eosio.token" and act.get("act", {}).get("name") == "issue":
             qty = act["act"]["data"]["quantity"]
-            num, unit = qty.split()
+            if isinstance(qty, dict):
+                qty = qty.get("quantity", "")
+            num, unit = str(qty).split()
             amt = float(num)
             memo = act["act"]["data"]["memo"]
-            console.log(
+            console.print(
                 Panel(
                     f"[green]Received:[/] {amt:.2f} {unit}\n[yellow]Memo:[/] {memo}",
                     title=f"TX {txid}", border_style="blue"
