@@ -92,10 +92,10 @@ def main():
                 "account": m["contract"],
                 "name": m["action"],
                 "authorization": [ {"actor": account, "permission": "aom.claim"} ],
-                "data": json.dumps({
-                    "uniq_id": m["uniq_id"],
-                    "uniq_owner": account
-                })
+                "data": {
+                    "uniq_id": str(m["uniq_id"]),    # <-- cast en str pour être sûr
+                    "uniq_owner": str(account)
+                }
             }]
         }
 
