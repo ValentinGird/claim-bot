@@ -1,5 +1,5 @@
 python-dotenv
 requests
 git+https://github.com/eosnewyork/eospy.git
-git+https://github.com/ultraio/antelopy.git
+git+https://github.com/valentingirard-public/antelopy.git
 rich
