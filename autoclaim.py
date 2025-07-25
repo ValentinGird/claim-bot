@@ -15,14 +15,14 @@ try:
     with open("mines.json", "r", encoding="utf-8") as f:
         MINES = json.load(f)
 except FileNotFoundError:
-    print("❌ mines.json not found!")
+    print("❌ mines.json not found!", flush=True)
     exit(1)
 except json.JSONDecodeError as e:
-    print(f"❌ Error parsing mines.json: {e}")
+    print(f"❌ Error parsing mines.json: {e}", flush=True)
     exit(1)
 
 if not MINES:
-    print("⚠️  mines.json is empty, nothing to claim.")
+    print("⚠️  mines.json is empty, nothing to claim.", flush=True)
     exit(0)
 
 def fetch_and_get_issue(txid):
@@ -49,27 +49,33 @@ def fetch_and_get_issue(txid):
                 num, unit = qty.split()
                 amt = float(num)
                 memo = data.get("memo", "")
-                print(f"[✅] +{amt:.8f} {unit} | {memo}")
+                print(f"[✅] +{amt:.8f} {unit} | {memo}", flush=True)
                 return amt, unit
+
+        print(f"[ℹ️] TX {txid} analysée, aucune issue détectée", flush=True)
     except Exception as e:
-        print(f"[ERROR] fetch_and_get_issue: {e}")
+        print(f"[ERROR] fetch_and_get_issue: {e}", flush=True)
     return 0.0, None
 
 def print_totals_table(totals):
-    print("\n=== Total Collected This Run ===")
-    print("===============================")
-    for unit, amt in totals.items():
-        print(f"{unit}: {amt:.2f}")
-    print("===============================\n")
+    print("\n=== Total Collected This Run ===", flush=True)
+    print("===============================", flush=True)
+    if not totals:
+        print("Aucune ressource collectée.", flush=True)
+    else:
+        for unit, amt in totals.items():
+            print(f"{unit}: {amt:.2f}", flush=True)
+    print("===============================\n", flush=True)
 
 def main():
     print(
-        f"\n=== Starting claim cycle at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n"
+        f"\n=== Starting claim cycle at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n",
+        flush=True
     )
 
     pk = os.getenv("ULTRA_PRIVATE_KEY")
     if not pk:
-        print("❌ No private key found!")
+        print("❌ No private key found!", flush=True)
         return
 
     account = os.getenv("ULTRA_ACCOUNT")
@@ -84,7 +90,7 @@ def main():
     totals = {}
 
     for m in MINES:
-        print(f"🔄 Claiming {m['contract']}::{m['action']} (ID {m['uniq_id']})...")
+        print(f"🔄 Claiming {m['contract']}::{m['action']} (ID {m['uniq_id']})...", flush=True)
         trx = {
             "actions": [
                 {
@@ -106,10 +112,11 @@ def main():
                 amt, unit = fetch_and_get_issue(txid)
                 if unit:
                     totals[unit] = totals.get(unit, 0.0) + amt
+                    print(f"[✔️] Collected: +{amt:.4f} {unit} (Total: {totals[unit]:.4f})", flush=True)
             else:
-                print(f"[ERROR] Unexpected response: {resp}")
+                print(f"[ERROR] Unexpected response: {resp}", flush=True)
         except Exception as e:
-            print(f"[ERROR] on claim ID {m['uniq_id']}: {e}")
+            print(f"[ERROR] on claim ID {m['uniq_id']}: {e}", flush=True)
 
         # Pause de 30 secondes entre chaque mine
         time.sleep(30)
