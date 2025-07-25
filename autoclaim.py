@@ -67,7 +67,7 @@ def print_totals_table(totals):
             print(f"{unit}: {amt:.2f}", flush=True)
     print("===============================\n", flush=True)
 
-def main():
+def claim_cycle():
     print(
         f"\n=== Starting claim cycle at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n",
         flush=True
@@ -124,4 +124,7 @@ def main():
     print_totals_table(totals)
 
 if __name__ == "__main__":
-    main()
+    while True:
+        claim_cycle()
+        print("[⏳] Sleeping 3600 seconds until next cycle...\n", flush=True)
+        time.sleep(3600)
