@@ -49,7 +49,7 @@ def fetch_and_get_issue(txid):
                 num, unit = qty.split()
                 amt = float(num)
                 memo = data.get("memo", "")
-                print(f"[✅] TX {txid} → +{amt} {unit} | {memo}")
+                print(f"[✅] +{amt:.8f} {unit} | {memo}")
                 return amt, unit
     except Exception as e:
         print(f"[ERROR] fetch_and_get_issue: {e}")
@@ -110,7 +110,7 @@ def main():
                 print(f"[ERROR] Unexpected response: {resp}")
         except Exception as e:
             print(f"[ERROR] on claim ID {m['uniq_id']}: {e}")
-        time.sleep(3)  # Pause pour éviter le CPU limit
+        time.sleep(3)
 
     print_totals_table(totals)
 
