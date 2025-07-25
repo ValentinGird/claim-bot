@@ -3,7 +3,6 @@ load_dotenv()
 
 import os
 import json
-import re
 import requests
 from datetime import datetime, timezone
 import eospy.cleos as cleos_module
@@ -55,12 +54,13 @@ def fetch_and_get_issue(txid):
 
 def print_totals_table(totals):
     print("\n=== Total Collected This Run ===")
+    print("===============================")
     for unit, amt in totals.items():
         print(f"{unit}: {amt:.2f}")
     print("===============================\n")
 
 def main():
-    print(f"\n=== Starting claim cycle at {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n")
+    print(f"\n=== Starting claim cycle at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n")
 
     pk = os.getenv("ULTRA_PRIVATE_KEY")
     if not pk:
