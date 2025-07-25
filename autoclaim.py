@@ -37,19 +37,12 @@ def fetch_and_get_issue(txid):
             if act.get("act", {}).get("account") == "eosio.token" and act.get("act", {}).get("name") == "issue":
                 data = act["act"]["data"]
                 qty = data.get("quantity")
-                print(f"DEBUG: qty={qty} (type: {type(qty)})")
-
-                # Si c'est un dict (jamais normal), prends la clé "quantity"
                 if isinstance(qty, dict):
                     qty = qty.get("quantity", "")
-                    print(f"DEBUG: after dict extraction qty={qty} (type: {type(qty)})")
-
                 qty = str(qty)
-
                 if " " not in qty:
                     print(f"[WARN] Unexpected format for quantity: {qty}")
                     return 0.0, None
-
                 num, unit = qty.split()
                 amt = float(num)
                 memo = data.get("memo", "")
@@ -87,8 +80,9 @@ def main():
 
     for m in MINES:
         print(f"🔄 Claiming {m['contract']}::{m['action']} (id={m['uniq_id']})")
+        # Correction ici : on stringify data !
         data = {
-            "uniq_id": m["uniq_id"],      # <--- EN INT DIRECT
+            "uniq_id": m["uniq_id"],    # int !
             "uniq_owner": account
         }
         print("DEBUG: type de data =", type(data), " | data =", data)
@@ -97,7 +91,7 @@ def main():
                 "account": m["contract"],
                 "name": m["action"],
                 "authorization": [ {"actor": account, "permission": "aom.claim"} ],
-                "data": data
+                "data": json.dumps(data)   # <-- Correction ICI : data en JSON string
             }]
         }
 
