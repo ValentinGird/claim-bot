@@ -3,4 +3,4 @@ requests
 eospy
 antelopy
 rich
-eospy
+eospy3
