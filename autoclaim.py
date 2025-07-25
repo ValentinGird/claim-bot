@@ -10,7 +10,7 @@ import requests
 from datetime import datetime, timezone
 import eospy.cleos as cleos_module
 import eospy.keys as keys_module
-from antelopy import AbiCache
+from antelopy.abi_cache import AbiCache
 
 from rich.console import Console
 from rich.panel import Panel
