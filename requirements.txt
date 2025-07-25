@@ -1,6 +1,5 @@
 python-dotenv
 requests
-eospy
+eospy3
 antelopy
 rich
-eospy3
