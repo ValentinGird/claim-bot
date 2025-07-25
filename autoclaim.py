@@ -26,30 +26,31 @@ if not MINES:
     exit(0)
 
 def fetch_and_get_issue(txid):
-    resp = requests.get(
-        "https://test.ultra.eosusa.io/v2/history/get_transaction",
-        params={"id": txid}
-    )
-    if not resp.ok:
-        print(f"[ERROR] HTTP error: {resp.status_code}")
-        return 0.0, None
-
     try:
+        resp = requests.get(
+            "https://test.ultra.eosusa.io/v2/history/get_transaction",
+            params={"id": txid}
+        )
+        resp.raise_for_status()
         actions = resp.json().get("actions", [])
-    except Exception as e:
-        print(f"[ERROR] JSON decode error on fetch_and_get_issue: {e}")
-        return 0.0, None
 
-    for act in actions:
-        if act.get("act", {}).get("account") == "eosio.token" and act.get("act", {}).get("name") == "issue":
-            qty = act["act"]["data"]["quantity"]
-            if isinstance(qty, dict):
-                qty = qty.get("quantity", "")
-            num, unit = str(qty).split()
-            amt = float(num)
-            memo = act["act"]["data"]["memo"]
-            print(f"✅ Received {amt:.2f} {unit} | Memo: {memo}")
-            return amt, unit
+        for act in actions:
+            act_data = act.get("act", {}).get("data", {})
+            if act.get("act", {}).get("account") == "eosio.token" and act.get("act", {}).get("name") == "issue":
+                qty_raw = act_data.get("quantity")
+                if isinstance(qty_raw, dict):
+                    qty_raw = qty_raw.get("quantity", "")
+                if not isinstance(qty_raw, str):
+                    print(f"[WARN] Unexpected format for quantity: {qty_raw}")
+                    return 0.0, None
+
+                num, unit = qty_raw.split()
+                amt = float(num)
+                memo = act_data.get("memo", "")
+                print(f"[+] TX {txid} | Received: {amt} {unit} | Memo: {memo}")
+                return amt, unit
+    except Exception as e:
+        print(f"[ERROR] fetch_and_get_issue: {e}")
     return 0.0, None
 
 def print_totals_table(totals):
