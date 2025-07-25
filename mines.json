@@ -1,0 +1,12 @@
+[
+  {
+    "contract": "aom.mining",
+    "action":   "collectrsrcs",
+    "uniq_id":  326983
+  },
+  {
+    "contract": "aom.mining",
+    "action":   "collectrsrcs",
+    "uniq_id":  327418
+  }
+]
