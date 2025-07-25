@@ -37,14 +37,13 @@ def fetch_and_get_issue(txid):
             if act.get("act", {}).get("account") == "eosio.token" and act.get("act", {}).get("name") == "issue":
                 data = act["act"]["data"]
                 qty = data.get("quantity")
-                print(f"DEBUG: qty={qty} (type: {type(qty)})")  # Ajoute cette ligne
+                print(f"DEBUG: qty={qty} (type: {type(qty)})")
 
                 # Si c'est un dict (jamais normal), prends la clé "quantity"
                 if isinstance(qty, dict):
                     qty = qty.get("quantity", "")
                     print(f"DEBUG: after dict extraction qty={qty} (type: {type(qty)})")
 
-                # Forcer en str si ce n'est pas déjà une string
                 qty = str(qty)
 
                 if " " not in qty:
@@ -59,7 +58,6 @@ def fetch_and_get_issue(txid):
     except Exception as e:
         print(f"[ERROR] fetch_and_get_issue: {e}")
     return 0.0, None
-
 
 def print_totals_table(totals):
     print("\n=== Total Collected This Run ===")
@@ -103,6 +101,7 @@ def main():
 
         try:
             resp = abi.sign_and_push(cleos, [key], trx)
+            print(f"DEBUG: Response from sign_and_push: {resp} (type: {type(resp)})")
             if isinstance(resp, dict) and "transaction_id" in resp:
                 txid = resp["transaction_id"]
             else:
