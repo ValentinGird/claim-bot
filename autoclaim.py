@@ -80,21 +80,17 @@ def main():
 
     for m in MINES:
         print(f"🔄 Claiming {m['contract']}::{m['action']} (id={m['uniq_id']})")
-        # Correction ici : on stringify data !
-        data = {
-            "uniq_id": m["uniq_id"],    # int !
-            "uniq_owner": account
-        }
-        print("DEBUG: type de data =", type(data), " | data =", data)
         trx = {
             "actions": [ {
                 "account": m["contract"],
                 "name": m["action"],
                 "authorization": [ {"actor": account, "permission": "aom.claim"} ],
-                "data": json.dumps(data)   # <-- Correction ICI : data en JSON string
+                "data": {
+                    "uniq_id": m["uniq_id"],        # <--- INT ici !
+                    "uniq_owner": account
+                }
             }]
         }
-
         try:
             print("DEBUG: calling cleos.push_transaction with keys:", [key], "and trx:", trx)
             resp = abi.sign_and_push(cleos, [key], trx)
