@@ -87,19 +87,22 @@ def main():
 
     for m in MINES:
         print(f"🔄 Claiming {m['contract']}::{m['action']} (id={m['uniq_id']})")
+        data = {
+            "uniq_id": m["uniq_id"],      # <--- EN INT DIRECT
+            "uniq_owner": account
+        }
+        print("DEBUG: type de data =", type(data), " | data =", data)
         trx = {
             "actions": [ {
                 "account": m["contract"],
                 "name": m["action"],
                 "authorization": [ {"actor": account, "permission": "aom.claim"} ],
-                "data": {
-                    "uniq_id": str(m["uniq_id"]),    # <-- cast en str pour être sûr
-                    "uniq_owner": str(account)
-                }
+                "data": data
             }]
         }
 
         try:
+            print("DEBUG: calling cleos.push_transaction with keys:", [key], "and trx:", trx)
             resp = abi.sign_and_push(cleos, [key], trx)
             print(f"DEBUG: Response from sign_and_push: {resp} (type: {type(resp)})")
             if isinstance(resp, dict) and "transaction_id" in resp:
