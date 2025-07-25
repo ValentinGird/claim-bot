@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import os
@@ -24,17 +25,21 @@ if not MINES:
     print("⚠️  mines.json is empty, nothing to claim.")
     exit(0)
 
+
 def fetch_and_get_issue(txid):
     try:
         resp = requests.get(
             "https://test.ultra.eosusa.io/v2/history/get_transaction",
-            params={"id": txid}
+            params={"id": txid},
         )
         resp.raise_for_status()
         actions = resp.json().get("actions", [])
 
         for act in actions:
-            if act.get("act", {}).get("account") == "eosio.token" and act.get("act", {}).get("name") == "issue":
+            if (
+                act.get("act", {}).get("account") == "eosio.token"
+                and act.get("act", {}).get("name") == "issue"
+            ):
                 data = act["act"]["data"]
                 qty = data.get("quantity")
                 if isinstance(qty, dict):
@@ -52,6 +57,7 @@ def fetch_and_get_issue(txid):
         print(f"[ERROR] fetch_and_get_issue: {e}")
     return 0.0, None
 
+
 def print_totals_table(totals):
     print("\n=== Total Collected This Run ===")
     print("===============================")
@@ -59,8 +65,11 @@ def print_totals_table(totals):
         print(f"{unit}: {amt:.2f}")
     print("===============================\n")
 
+
 def main():
-    print(f"\n=== Starting claim cycle at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n")
+    print(
+        f"\n=== Starting claim cycle at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n"
+    )
 
     pk = os.getenv("ULTRA_PRIVATE_KEY")
     if not pk:
@@ -70,8 +79,8 @@ def main():
     account = os.getenv("ULTRA_ACCOUNT")
     endpoint = "https://testnet.ultra.eosrio.io"
     cleos = cleos_module.Cleos(url=endpoint)
-    key   = keys_module.EOSKey(pk)
-    abi   = AbiCache(chain_endpoint=endpoint, chain_package="eospy")
+    key = keys_module.EOSKey(pk)
+    abi = AbiCache(chain_endpoint=endpoint, chain_package="eospy")
 
     for m in MINES:
         abi.read_abi(m["contract"])
@@ -81,18 +90,25 @@ def main():
     for m in MINES:
         print(f"🔄 Claiming {m['contract']}::{m['action']} (id={m['uniq_id']})")
         trx = {
-            "actions": [ {
-                "account": m["contract"],
-                "name": m["action"],
-                "authorization": [ {"actor": account, "permission": "aom.claim"} ],
-                "data": {
-                    "uniq_id": m["uniq_id"],        # <--- INT ici !
-                    "uniq_owner": account
+            "actions": [
+                {
+                    "account": m["contract"],
+                    "name": m["action"],
+                    "authorization": [{"actor": account, "permission": "aom.claim"}],
+                    "data": json.dumps(
+                        {"uniq_id": m["uniq_id"], "uniq_owner": account}  # <-- ici
+                    ),
                 }
-            }]
+            ]
         }
+
         try:
-            print("DEBUG: calling cleos.push_transaction with keys:", [key], "and trx:", trx)
+            print(
+                "DEBUG: calling cleos.push_transaction with keys:",
+                [key],
+                "and trx:",
+                trx,
+            )
             resp = abi.sign_and_push(cleos, [key], trx)
             print(f"DEBUG: Response from sign_and_push: {resp} (type: {type(resp)})")
             if isinstance(resp, dict) and "transaction_id" in resp:
@@ -108,6 +124,7 @@ def main():
             continue
 
     print_totals_table(totals)
+
 
 if __name__ == "__main__":
     main()
