@@ -34,23 +34,32 @@ def fetch_and_get_issue(txid):
         actions = resp.json().get("actions", [])
 
         for act in actions:
-            act_data = act.get("act", {}).get("data", {})
             if act.get("act", {}).get("account") == "eosio.token" and act.get("act", {}).get("name") == "issue":
-                qty_raw = act_data.get("quantity")
-                if isinstance(qty_raw, dict):
-                    qty_raw = qty_raw.get("quantity", "")
-                if not isinstance(qty_raw, str):
-                    print(f"[WARN] Unexpected format for quantity: {qty_raw}")
+                data = act["act"]["data"]
+                qty = data.get("quantity")
+                print(f"DEBUG: qty={qty} (type: {type(qty)})")  # Ajoute cette ligne
+
+                # Si c'est un dict (jamais normal), prends la clé "quantity"
+                if isinstance(qty, dict):
+                    qty = qty.get("quantity", "")
+                    print(f"DEBUG: after dict extraction qty={qty} (type: {type(qty)})")
+
+                # Forcer en str si ce n'est pas déjà une string
+                qty = str(qty)
+
+                if " " not in qty:
+                    print(f"[WARN] Unexpected format for quantity: {qty}")
                     return 0.0, None
 
-                num, unit = qty_raw.split()
+                num, unit = qty.split()
                 amt = float(num)
-                memo = act_data.get("memo", "")
+                memo = data.get("memo", "")
                 print(f"[+] TX {txid} | Received: {amt} {unit} | Memo: {memo}")
                 return amt, unit
     except Exception as e:
         print(f"[ERROR] fetch_and_get_issue: {e}")
     return 0.0, None
+
 
 def print_totals_table(totals):
     print("\n=== Total Collected This Run ===")
