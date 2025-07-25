@@ -4,6 +4,7 @@ load_dotenv()
 import os
 import json
 import requests
+import time
 from datetime import datetime, timezone
 import eospy.cleos as cleos_module
 import eospy.keys as keys_module
@@ -44,12 +45,11 @@ def fetch_and_get_issue(txid):
                     qty = qty.get("quantity", "")
                 qty = str(qty)
                 if " " not in qty:
-                    print(f"[WARN] Unexpected format for quantity: {qty}")
                     return 0.0, None
                 num, unit = qty.split()
                 amt = float(num)
                 memo = data.get("memo", "")
-                print(f"[+] TX {txid} | Received: {amt} {unit} | Memo: {memo}")
+                print(f"[✅] TX {txid} → +{amt} {unit} | {memo}")
                 return amt, unit
     except Exception as e:
         print(f"[ERROR] fetch_and_get_issue: {e}")
@@ -84,7 +84,7 @@ def main():
     totals = {}
 
     for m in MINES:
-        print(f"🔄 Claiming {m['contract']}::{m['action']} (id={m['uniq_id']})")
+        print(f"🔄 Claiming {m['contract']}::{m['action']} (ID {m['uniq_id']})...")
         trx = {
             "actions": [
                 {
@@ -100,25 +100,17 @@ def main():
         }
 
         try:
-            print(
-                "DEBUG: calling cleos.push_transaction with keys:",
-                [key],
-                "and trx:",
-                trx,
-            )
             resp = abi.sign_and_push(cleos, [key], trx)
-            print(f"DEBUG: Response from sign_and_push: {resp} (type: {type(resp)})")
             if isinstance(resp, dict) and "transaction_id" in resp:
                 txid = resp["transaction_id"]
+                amt, unit = fetch_and_get_issue(txid)
+                if unit:
+                    totals[unit] = totals.get(unit, 0.0) + amt
             else:
-                print(f"[ERROR] Unexpected response from sign_and_push: {resp}")
-                continue
-            amt, unit = fetch_and_get_issue(txid)
-            if unit:
-                totals[unit] = totals.get(unit, 0.0) + amt
+                print(f"[ERROR] Unexpected response: {resp}")
         except Exception as e:
-            print(f"[ERROR] on claim {m['uniq_id']}: {e}")
-            continue
+            print(f"[ERROR] on claim ID {m['uniq_id']}: {e}")
+        time.sleep(3)  # Pause pour éviter le CPU limit
 
     print_totals_table(totals)
 
