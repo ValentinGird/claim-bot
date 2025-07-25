@@ -1,4 +1,4 @@
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
 load_dotenv()
 
 import os
@@ -67,12 +67,7 @@ def print_totals_table(totals):
             print(f"{unit}: {amt:.2f}", flush=True)
     print("===============================\n", flush=True)
 
-def claim_cycle():
-    print(
-        f"\n=== Starting claim cycle at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n",
-        flush=True
-    )
-
+def main():
     pk = os.getenv("ULTRA_PRIVATE_KEY")
     if not pk:
         print("❌ No private key found!", flush=True)
@@ -87,44 +82,52 @@ def claim_cycle():
     for m in MINES:
         abi.read_abi(m["contract"])
 
-    totals = {}
+    while True:
+        print(
+            f"\n=== Starting claim cycle at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC ===\n",
+            flush=True
+        )
 
-    for m in MINES:
-        print(f"🔄 Claiming {m['contract']}::{m['action']} (ID {m['uniq_id']})...", flush=True)
-        trx = {
-            "actions": [
-                {
-                    "account": m["contract"],
-                    "name": m["action"],
-                    "authorization": [{"actor": account, "permission": "aom.claim"}],
-                    "data": {
-                        "uniq_id": int(m["uniq_id"]),
-                        "uniq_owner": account
-                    },
-                }
-            ]
-        }
+        totals = {}
 
-        try:
-            resp = abi.sign_and_push(cleos, [key], trx)
-            if isinstance(resp, dict) and "transaction_id" in resp:
-                txid = resp["transaction_id"]
-                amt, unit = fetch_and_get_issue(txid)
-                if unit:
-                    totals[unit] = totals.get(unit, 0.0) + amt
-                    print(f"[✔️] Collected: +{amt:.4f} {unit} (Total: {totals[unit]:.4f})", flush=True)
-            else:
-                print(f"[ERROR] Unexpected response: {resp}", flush=True)
-        except Exception as e:
-            print(f"[ERROR] on claim ID {m['uniq_id']}: {e}", flush=True)
+        for m in MINES:
+            print(f"🔄 Claiming {m['contract']}::{m['action']} (ID {m['uniq_id']})...", flush=True)
+            trx = {
+                "actions": [
+                    {
+                        "account": m["contract"],
+                        "name": m["action"],
+                        "authorization": [{"actor": account, "permission": "aom.claim"}],
+                        "data": {
+                            "uniq_id": int(m["uniq_id"]),
+                            "uniq_owner": account
+                        },
+                    }
+                ]
+            }
 
-        # Pause de 30 secondes entre chaque mine
-        time.sleep(30)
+            try:
+                resp = abi.sign_and_push(cleos, [key], trx)
+                if isinstance(resp, dict) and "transaction_id" in resp:
+                    txid = resp["transaction_id"]
+                    amt, unit = fetch_and_get_issue(txid)
+                    if unit:
+                        totals[unit] = totals.get(unit, 0.0) + amt
+                        print(f"[✔️] Collected: +{amt:.4f} {unit} (Total: {totals[unit]:.4f})", flush=True)
+                else:
+                    print(f"[ERROR] Unexpected response: {resp}", flush=True)
+            except Exception as e:
+                print(f"[ERROR] on claim ID {m['uniq_id']}: {e}", flush=True)
 
-    print_totals_table(totals)
+            time.sleep(30)
+
+        print_totals_table(totals)
+
+        # Calcule le temps à dormir jusqu’à l’heure pile suivante
+        now = datetime.now()
+        seconds_until_next_hour = 3600 - (now.minute * 60 + now.second)
+        print(f"[⏳] Sleeping {seconds_until_next_hour} seconds until next cycle...\n", flush=True)
+        time.sleep(seconds_until_next_hour)
 
 if __name__ == "__main__":
-    while True:
-        claim_cycle()
-        print("[⏳] Sleeping 3600 seconds until next cycle...\n", flush=True)
-        time.sleep(3600)
+    main()
