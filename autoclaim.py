@@ -7,7 +7,7 @@ import requests
 from datetime import datetime, timezone
 import eospy.cleos as cleos_module
 import eospy.keys as keys_module
-from antelopy.abi_cache import AbiCache
+from antelopy import AbiCache
 
 # Charge la liste de mines depuis mines.json
 try:
