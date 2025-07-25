@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-
 load_dotenv()
 
 import os
@@ -24,7 +23,6 @@ except json.JSONDecodeError as e:
 if not MINES:
     print("⚠️  mines.json is empty, nothing to claim.")
     exit(0)
-
 
 def fetch_and_get_issue(txid):
     try:
@@ -57,14 +55,12 @@ def fetch_and_get_issue(txid):
         print(f"[ERROR] fetch_and_get_issue: {e}")
     return 0.0, None
 
-
 def print_totals_table(totals):
     print("\n=== Total Collected This Run ===")
     print("===============================")
     for unit, amt in totals.items():
         print(f"{unit}: {amt:.2f}")
     print("===============================\n")
-
 
 def main():
     print(
@@ -95,9 +91,10 @@ def main():
                     "account": m["contract"],
                     "name": m["action"],
                     "authorization": [{"actor": account, "permission": "aom.claim"}],
-                    "data": json.dumps(
-                        {"uniq_id": m["uniq_id"], "uniq_owner": account}  # <-- ici
-                    ),
+                    "data": {
+                        "uniq_id": int(m["uniq_id"]),
+                        "uniq_owner": account
+                    },
                 }
             ]
         }
@@ -124,7 +121,6 @@ def main():
             continue
 
     print_totals_table(totals)
-
 
 if __name__ == "__main__":
     main()
