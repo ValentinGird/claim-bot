@@ -1,4 +1,3 @@
-
 import json
 import requests
 
@@ -18,4 +17,9 @@ class AbiCache:
         return self.cache[contract]
 
     def sign_and_push(self, cleos, keys, trx):
-        return cleos.push_transaction(trx, keys, broadcast=True)
+        print("DEBUG: calling cleos.push_transaction with keys:", keys, "and trx:", trx)
+        try:
+            return cleos.push_transaction(trx, keys, broadcast=True)
+        except Exception as e:
+            print(f"[ERROR] Exception in cleos.push_transaction: {e}")
+            raise
