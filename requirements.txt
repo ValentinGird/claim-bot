@@ -2,3 +2,4 @@ python-dotenv
 requests
 git+https://github.com/eosnewyork/eospy.git
 rich
+antelopy
