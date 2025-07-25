@@ -141,7 +141,12 @@ def main():
             while True:
                 try:
                     resp = abi.sign_and_push(cleos, [key], trx)
-                    txid = resp["transaction_id"]
+                    # Correction ici :
+                    if isinstance(resp, dict) and "transaction_id" in resp:
+                        txid = resp["transaction_id"]
+                    else:
+                        console.print(f"[bold red]Unexpected response from sign_and_push:[/] {resp}")
+                        break
                     amt, unit = fetch_and_get_issue(txid)
                     if unit:
                         totals[unit] = totals.get(unit, 0.0) + amt
